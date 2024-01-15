@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comentários</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Exo:wght@400;700&display=swap');
+    body{
+      font-family: 'Exo', sans-serif;
+    }
+    table {
+      border-collapse: collapse;
+      width: 50%;
+      margin: 20px;
+    }
+
+    th, td {
+      border: 1px solid #dddddd;
+      text-align: left;
+      padding: 8px;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+    .uploads, .cards {
+    box-shadow: 0 0 5px 2.5px #ededed;
+    border-radius: 30px;
+    width: 285px;
+    height: 148px;
+    padding: 15px;
+}
+.cards{
+  background-color: #fdbbff ;
+}
+.uploads h3, .cards h3, .cards h2{
+  text-align: center;
+  width: 100%;
+}
+.cards h2{
+  font-size: 45px;
+}
+button {
+    width: 100%;
+    padding: 10px 0;
+    margin: 25px 0 00;
+    border-color: transparent;
+    background: #fdbbff;
+    border-radius: 30px;
+    box-shadow: 0 0 2px 1px #d895fc;
+    cursor: pointer;
+}
+.container {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+}
+.tabelas {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+button.remove {
+    width: 150px;
+    position: relative;
+    right: 0;
+    left: calc( 100% - 170px);
+    background: aliceblue;
+    box-shadow: 0 0 2px 1px #95fcd0;
+}
+  </style>
+</head>
+<body>
+  <div class="container">
+  <div class="uploads">
+    <h3>Upload de Arquivo</h3>
+    
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" id="fileInput" accept=".txt">
+        <button type="button" onclick="uploadFile()">Enviar</button>
+    </form>
+  </div>
+
+
+  <div class="cards">
+    <h3>Total de Comentários</h3>
+    <h2 id="total">0</h2>
+  </div>
+  <div class="cards">
+    <h3>Comentários Positivos</h3>
+    <h2 id="ptotal">0</h2>
+  </div>
+  <div class="cards">
+    <h3>Comentários Negativos</h3>
+    <h2 id="ngtotal">0</h2>
+  </div>
+</div>
+<button class="remove" onclick="removedado()">Remover dados</button>
+<div class="tabelas">
+  <table id="tabelaSentimentosPositivos">
+    <thead>
+      <tr>
+        <th>Sentimento</th>
+        <th>Comentário</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <table id="tabelaSentimentosNegativos">
+    <thead>
+      <tr>
+        <th>Sentimento</th>
+        <th>Comentário</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+
+<script>
+  function list(){
+    let total=0;
+    let postivos=0;
+    let negativos=0;
+    document.addEventListener('DOMContentLoaded', function() {
+    fetch('http://127.0.0.1:5000/obter_lista_json', {
+      method: 'GET'
+    })
+    .then(response => response.json())
+    .then(data => popularTabela(data))
+    .catch(error => console.error('Erro ao obter os dados da API:', error));
+
+    function popularTabela(dados) {
+     
+
+      dados.forEach(item => {
+       
+        total=total+1;
+        if(item.sentimento =="negativo"){
+          negativos=negativos+1
+          const tabela = document.getElementById('tabelaSentimentosNegativos');
+          const tbody = tabela.getElementsByTagName('tbody')[0];
+          const linha = tbody.insertRow();
+          const cellSentimento = linha.insertCell(0);
+          const cellComentario = linha.insertCell(1);
+          cellSentimento.textContent = item.sentimento;
+          cellComentario.textContent = item.comentario;
+        }
+        else{
+          postivos=postivos+1
+          
+          const tabela = document.getElementById('tabelaSentimentosPositivos');
+          const tbody = tabela.getElementsByTagName('tbody')[0];
+          const linha = tbody.insertRow();
+          const cellSentimento = linha.insertCell(0);
+          const cellComentario = linha.insertCell(1);
+          cellSentimento.textContent = item.sentimento;
+          cellComentario.textContent = item.comentario;
+        }
+        
+      });
+
+      document.getElementById("total").textContent = total.toString();
+      document.getElementById("ngtotal").textContent = negativos.toString();
+      document.getElementById("ptotal").textContent = postivos.toString();
+    }
+  });
+  }
+  list()
+  
+
+</script>
+    <script>
+        function uploadFile() {
+            var fileInput = document.getElementById('fileInput');
+            var file = fileInput.files[0];
+
+            var formData = new FormData();
+            formData.append('file', file);
+
+            fetch('http://127.0.0.1:5000/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(response => window.location.reload())
+            .catch(error => {
+                console.error('Erro:', error);
+            });
+        }
+        function removedado(){
+          fetch('http://127.0.0.1:5000/remove_list', {
+            method: 'GET'
+          })
+          .then(response => response.text())
+            .then(response => window.location.reload())
+          .catch(error => console.error('Erro ao remover os dados da API:', error));
+        }
+    </script>
+
+</body>
+</html>
+
+
